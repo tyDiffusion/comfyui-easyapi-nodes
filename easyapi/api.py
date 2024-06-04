@@ -5,12 +5,13 @@ import nodes
 from server import PromptServer
 from aiohttp import web
 import execution
-from simple_lama_inpainting import SimpleLama
+#from simple_lama_inpainting import SimpleLama
 from .util import image_to_base64, base64_to_image
 from .settings import reset_history_size, get_settings, set_settings
 
 extension_folder = os.path.dirname(os.path.realpath(__file__))
 
+"""
 simple_lama = None
 lama_model_dir = os.path.join(folder_paths.models_dir, "lama")
 lama_model_path = os.path.join(lama_model_dir, "big-lama.pt")
@@ -20,7 +21,7 @@ if not os.path.exists(lama_model_path):
 else:
     os.environ['LAMA_MODEL'] = lama_model_path
 os.makedirs(lama_model_dir, exist_ok=True)
-
+"""
 
 def register_routes():
     @PromptServer.instance.routes.post("/easyapi/history/size")
@@ -124,6 +125,7 @@ def register_routes():
         PromptServer.instance.prompt_queue.delete_queue_item(delete_func)
         return web.Response(status=200)
 
+    """
     @PromptServer.instance.routes.post("/easyapi/lama_cleaner")
     async def lama_cleaner(request):
         json_data = await request.json()
@@ -146,7 +148,7 @@ def register_routes():
 
         response = {"base64Image": encoded_image}
         return web.json_response(response, status=200)
-
+    """
 
 def init():
     reset_history_size(isStart=True)
