@@ -1,3 +1,4 @@
+"""
 from segment_anything import SamAutomaticMaskGenerator
 import json
 import numpy as np
@@ -52,3 +53,5 @@ NODE_CLASS_MAPPINGS = {
 NODE_DISPLAY_NAME_MAPPINGS = {
     "SamAutoMaskSEGS": "SamAutoMaskSEGS",
 }
+
+"""
