@@ -10,7 +10,7 @@ from PIL.PngImagePlugin import PngInfo
 import json
 from json import JSONEncoder, JSONDecoder
 from .util import tensor_to_pil, pil_to_tensor, base64_to_image, image_to_base64, read_image_from_url
-
+import comfy.utils
 
 class LoadImageFromURL:
     """
@@ -176,12 +176,14 @@ class ImageListToBatch:
 class ImageToBase64Advanced:
     def __init__(self):
         self.imageType = "image"
+        self.include_metadata = False
 
     @classmethod
     def INPUT_TYPES(self):
         return {"required": {
             "images": ("IMAGE",),
             "imageType": (["image", "mask"], {"default": "image"}),
+            "include_metadata": ("BOOLEAN", {"default" : False}),
         },
             "hidden": {"prompt": "PROMPT", "extra_pnginfo": "EXTRA_PNGINFO"},
         }
@@ -199,30 +201,36 @@ class ImageToBase64Advanced:
     # INPUT_IS_LIST = False
     # OUTPUT_IS_LIST = (False,False,)
 
-    def convert(self, images, imageType=None, prompt=None, extra_pnginfo=None):
+    def convert(self, images, imageType=None, include_metadata=None, prompt=None, extra_pnginfo=None):
         if imageType is None:
             imageType = self.imageType
-
+        if include_metadata is None:
+            include_metadata = self.include_metadata
+        
         result = list()
-        for i in images:
-            img = tensor_to_pil(i)
+        pbar = comfy.utils.ProgressBar(len(images))
+        for i in range(len(images)):            
+            img = tensor_to_pil(images[i])
             metadata = None
             if not args.disable_metadata:
-                metadata = PngInfo()
-                if prompt is not None:
-                    newPrompt = copy.deepcopy(prompt)
-                    for idx in newPrompt:
-                        node = newPrompt[idx]
-                        if node['class_type'] == 'Base64ToImage' or node['class_type'] == 'Base64ToMask':
-                            node['inputs']['base64Images'] = ""
-                    metadata.add_text("prompt", json.dumps(newPrompt))
-                if extra_pnginfo is not None:
-                    for x in extra_pnginfo:
-                        metadata.add_text(x, json.dumps(extra_pnginfo[x]))
+                if include_metadata:            
+                    metadata = PngInfo()
+                    if prompt is not None:
+                        newPrompt = copy.deepcopy(prompt)
+                        for idx in newPrompt:
+                            node = newPrompt[idx]
+                            if node['class_type'] == 'Base64ToImage' or node['class_type'] == 'Base64ToMask':
+                                node['inputs']['base64Images'] = ""
+                        metadata.add_text("prompt", json.dumps(newPrompt))
+                    if extra_pnginfo is not None:
+                        for x in extra_pnginfo:
+                            metadata.add_text(x, json.dumps(extra_pnginfo[x]))
 
             # 将图像数据编码为Base64字符串
             encoded_image = image_to_base64(img, pnginfo=metadata)
             result.append(encoded_image)
+            pbar.update_absolute(i, len(images), None)
+            
         base64Images = JSONEncoder().encode(result)
         # print(images)
         return {"ui": {"base64Images": result, "imageType": [imageType]}, "result": (base64Images,)}
