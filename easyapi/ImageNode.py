@@ -229,7 +229,7 @@ class ImageToBase64Advanced:
             # 将图像数据编码为Base64字符串
             encoded_image = image_to_base64(img, pnginfo=metadata)
             result.append(encoded_image)
-            pbar.update_absolute(i, len(images), img)
+            pbar.update_absolute(i, len(images), ("PNG", img, None))
             
         base64Images = JSONEncoder().encode(result)
         # print(images)
