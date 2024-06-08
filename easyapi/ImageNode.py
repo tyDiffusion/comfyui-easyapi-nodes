@@ -146,6 +146,32 @@ class Base64ToImage:
 
         return (images, masks,)
 
+class ImageListToBatch:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": {
+                        "images": ("IMAGE", ),
+                      }
+                }
+
+    INPUT_IS_LIST = True
+
+    RETURN_TYPES = ("IMAGE", )
+    FUNCTION = "convert"
+
+    CATEGORY = "EasyApi/Image"
+
+    def convert(self, images):
+        if len(images) <= 1:
+            return (images,)
+        else:
+            image1 = images[0]
+            for image2 in images[1:]:
+                if image1.shape[1:] != image2.shape[1:]:
+                    image2 = comfy.utils.common_upscale(image2.movedim(-1, 1), image1.shape[2], image1.shape[1], "lanczos", "center").movedim(1, -1)
+                image1 = torch.cat((image1, image2), dim=0)
+            return (image1,)
+            
 
 class ImageToBase64Advanced:
     def __init__(self):
@@ -351,6 +377,7 @@ NODE_CLASS_MAPPINGS = {
     "MaskToBase64Image": MaskToBase64Image,
     "MaskImageToBase64": MaskImageToBase64,
     "LoadImageToBase64": LoadImageToBase64,
+    "ImageListToBatch": ImageListToBatch,
 }
 
 # A dictionary that contains the friendly/humanly readable titles for the nodes
@@ -365,4 +392,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "MaskToBase64Image": "Mask To Base64 Image",
     "MaskImageToBase64": "Mask Image To Base64",
     "LoadImageToBase64": "Load Image To Base64",
+    "ImageListToBatch": "Image List to Batch",
 }
