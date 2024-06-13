@@ -1,5 +1,6 @@
 import base64
 import io
+from cv2 import imencode
 
 import numpy as np
 import requests
@@ -38,14 +39,18 @@ def base64_to_image(base64_string):
 
 
 def image_to_base64(pli_image, pnginfo=None):
+
+    image_arr = np.array(pli_image)
+    _, image_data_bytes = imencode('.png', image_arr)   
+    
     # 创建一个BytesIO对象，用于临时存储图像数据
-    image_data = io.BytesIO()
+    #image_data = io.BytesIO()
 
     # 将图像保存到BytesIO对象中，格式为PNG
-    pli_image.save(image_data, format='PNG', pnginfo=pnginfo)
+    #pli_image.save(image_data, format='PNG', pnginfo=pnginfo)
 
     # 将BytesIO对象的内容转换为字节串
-    image_data_bytes = image_data.getvalue()
+    #image_data_bytes = image_data.getvalue()
 
     # 将图像数据编码为Base64字符串
     encoded_image = "data:image/png;base64," + base64.b64encode(image_data_bytes).decode('utf-8')
