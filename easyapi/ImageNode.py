@@ -11,6 +11,7 @@ import json
 from json import JSONEncoder, JSONDecoder
 from .util import tensor_to_pil, pil_to_tensor, base64_to_image, image_to_base64, read_image_from_url
 import comfy.utils
+import time
 
 class LoadImageFromURL:
     """
@@ -209,8 +210,10 @@ class ImageToBase64Advanced:
         
         result = list()
         pbar = comfy.utils.ProgressBar(len(images))
-        for i in range(len(images)):            
-            img = tensor_to_pil(images[i])
+        
+        lastProgTime = time.time()
+        for i in range(len(images)):                          
+            img = tensor_to_pil(images[i])            
             metadata = None
             if not args.disable_metadata:
                 if include_metadata:            
@@ -225,11 +228,14 @@ class ImageToBase64Advanced:
                     if extra_pnginfo is not None:
                         for x in extra_pnginfo:
                             metadata.add_text(x, json.dumps(extra_pnginfo[x]))
-
-            # 将图像数据编码为Base64字符串
-            encoded_image = image_to_base64(img, pnginfo=metadata)
+            
+            encoded_image = image_to_base64(img, pnginfo=metadata)            
             result.append(encoded_image)
-            pbar.update_absolute(i, len(images), ("PNG", img, None))
+            
+            if (time.time() - lastProgTime > .25):
+                pbar.update_absolute(i, len(images), ("PNG", img, None))
+                lastProgTime = time.time()
+            
             
         base64Images = JSONEncoder().encode(result)
         # print(images)
