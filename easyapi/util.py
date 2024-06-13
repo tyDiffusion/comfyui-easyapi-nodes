@@ -1,5 +1,6 @@
 import base64
 import io
+import cv2
 from cv2 import imencode
 
 import numpy as np
@@ -41,6 +42,7 @@ def base64_to_image(base64_string):
 def image_to_base64(pli_image, pnginfo=None):
 
     image_arr = np.array(pli_image)
+    image_arr = cv2.cvtColor(image_arr , cv2.COLOR_BGR2RGB)
     _, image_data_bytes = imencode('.png', image_arr)   
     
     # 创建一个BytesIO对象，用于临时存储图像数据
